@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Queueing Model Simulation and Performance Analysis System</title>
+<style>
+:root{--ink:#0f1b2d;--ink2:#14243b;--iv:#f6f4ee;--line:#e5e0d4;--txt:#1b2230;--mut:#6a7284;--gold:#a8814a;--ok:#2d7457;--bad:#a1402f;--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--iv);color:var(--txt);font:14.5px/1.55 Inter,"Segoe UI",system-ui,sans-serif;display:grid;grid-template-columns:252px 1fr;min-height:100vh;font-variant-numeric:tabular-nums}
+aside{background:var(--ink);color:#aab4c8;position:sticky;top:0;height:100vh;padding:30px 0;overflow:auto}
+.brand{padding:0 26px 24px;border-bottom:1px solid #243651;margin-bottom:12px}
+.brand small{display:block;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.brand b{font:600 20px/1.2 var(--serif);color:#fff}
+nav a{display:block;padding:10px 26px;color:#aab4c8;cursor:pointer;border-left:2px solid transparent;font-size:13.5px}
+nav a:hover{color:#fff;background:var(--ink2)} nav a.on{color:#fff;border-left-color:var(--gold);background:var(--ink2)}
+nav .sep{margin:18px 26px 6px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5f6d86}
+main{padding:42px 52px 70px;max-width:1200px;width:100%}
+.ph{border-bottom:1px solid var(--line);margin-bottom:26px;padding-bottom:6px}
+.ph h1{font:600 31px/1.2 var(--serif);margin:0;letter-spacing:-.01em}
+.ph p{color:var(--mut);margin:8px 0 18px;max-width:72ch}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:22px 26px;margin-bottom:20px;box-shadow:0 1px 2px rgba(15,27,45,.05),0 12px 32px rgba(15,27,45,.04)}
+h3{font:600 11px Inter,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+input,select,textarea{width:100%;background:#fff;color:var(--txt);border:1px solid #d6d0c2;border-radius:4px;padding:8px 10px;font:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(168,129,74,.15)}
+textarea{min-height:120px;resize:vertical;line-height:1.5}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.fixed{display:inline-block;font-size:12px;border:1px solid var(--line);padding:4px 10px;border-radius:3px;color:var(--ink);background:#faf8f3;margin-bottom:12px}
+.mode{display:flex;gap:22px;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.mode span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.mode label{display:flex;gap:7px;align-items:center;margin:0;color:var(--txt);font-size:14px;cursor:pointer}.mode input{width:auto}
+.btn{background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:4px;padding:9px 20px;font:600 13px Inter,sans-serif;letter-spacing:.04em;cursor:pointer}
+.btn:hover{background:#1d3150;border-color:var(--gold)}.btn:disabled{opacity:.5}
+.btn.ghost{background:transparent;color:var(--ink);border-color:#cfc8b8}.btn.ghost:hover{border-color:var(--gold);background:#faf8f3}
+.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.chips{margin-top:10px}.chips .btn{padding:5px 12px;font-size:12px;margin:0 6px 6px 0}
+.msg{color:var(--bad);margin-top:12px;font-size:13.5px;min-height:4px}
+.rh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.model{font:600 40px/1.1 var(--serif);color:var(--ink)}.model em{font:italic 15px var(--serif);color:var(--mut);margin-left:10px}
+.pill{font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:999px;border:1px solid}
+.pill.ok{color:var(--ok);border-color:var(--ok)}.pill.bad{color:var(--bad);border-color:var(--bad)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:16px 0}
+.kpi{background:#fff;padding:16px 18px}.kpi span{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.kpi b{display:block;font:500 28px var(--serif);margin-top:4px}.kpi small{color:var(--mut);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+th{font:600 10.5px Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);background:#faf8f3}
+th:first-child,td:first-child{text-align:left}.scroll{max-height:440px;overflow:auto;border:1px solid var(--line)}.scroll th{position:sticky;top:0}
+ul,ol{margin:6px 0 0;padding-left:20px}li{margin:4px 0}.mono{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.mut{color:var(--mut)}.warn{color:#8a6414}.bad-t{color:var(--bad)}.sol{margin-top:14px;padding:16px 20px;background:#faf8f3;border-left:2px solid var(--gold)}
+details{margin-top:12px}summary{cursor:pointer;color:var(--mut);font-size:13px}
+canvas{width:100%;height:240px;border:1px solid var(--line);background:#fff}
+.view[hidden]{display:none}.th h4{font:600 17px var(--serif);margin:22px 0 6px}.th p{margin:4px 0}
+.f{font-family:ui-monospace,Consolas,monospace;background:#faf8f3;border:1px solid var(--line);padding:2px 7px;border-radius:3px;font-size:13px}
+[contenteditable]{border-bottom:1px dashed #cfc8b8;padding:0 4px;min-width:140px;display:inline-block}
+@media(max-width:900px){body{grid-template-columns:1fr}aside{position:static;height:auto}main{padding:24px}.two,.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside><div class="brand"><small>Modelling &amp; Simulation</small><b>Queueing Analysis System</b></div><nav id="nav"></nav></aside>
+<main id="main"></main>
+
+<script>
+const $=id=>document.getElementById(id);
+const f=(x,d=4)=>x==null||!isFinite(x)?'—':Number(x).toLocaleString('en-US',{maximumFractionDigits:d});
+const li=a=>a.map(x=>`<li>${x}</li>`).join('');
+const q=(id,k)=>$(id).querySelector(`[data-r=${k}]`);
+const KINDS=['Exponential','Deterministic','Uniform','Normal','Gamma','General'];
+async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('The server rejected the input (HTTP '+r.status+').');return r.json();}
+
+/* ---------- distribution editor ---------- */
+function editor(id,role,fixed,kinds){
+ const ks=kinds||KINDS;
+ return `<div class="ed" id="${id}" data-role="${role}" ${fixed?`data-fixed="${fixed}"`:''}>
+ ${fixed?`<div class="fixed">${fixed} (Markovian)</div>`:`<label>Distribution</label><select data-r="kind" style="margin-bottom:12px">${ks.map(k=>`<option>${k}</option>`).join('')}${ks.includes('Erlang')?'':''}</select>`}
+ <div class="g2">
+  <div data-k="Exponential Deterministic Normal Gamma General Erlang"><label data-r="meanLbl">Mean</label><input data-r="mean" inputmode="decimal"></div>
+  <div><label>Time unit</label><select data-r="unit"><option value="minute">Minute</option><option value="hour">Hour</option></select></div>
+  <div data-k="Normal Gamma General"><label>Standard deviation</label><input data-r="sd" inputmode="decimal"></div>
+  <div data-k="General"><label>or Variance</label><input data-r="var" inputmode="decimal"></div>
+  <div data-k="Uniform"><label>Minimum a</label><input data-r="a" inputmode="decimal"></div>
+  <div data-k="Uniform"><label>Maximum b</label><input data-r="b" inputmode="decimal"></div>
+  <div data-k="Erlang"><label>Phases k</label><input data-r="k" inputmode="numeric"></div>
+ </div></div>`;
+}
+function show(id){const e=$(id),k=e.dataset.fixed||q(id,'kind').value;e.querySelectorAll('[data-k]').forEach(x=>x.style.display=x.dataset.k.split(' ').includes(k)?'':'none');}
+function relabel(id,mode){const arr=$(id).dataset.role==='arr',rate=mode==='rate';
+ q(id,'meanLbl').textContent=rate?(arr?'Arrival rate λ (customers per time unit)':'Service rate μ (customers per time unit)'):(arr?'Mean inter-arrival time E[A]':'Mean service time E[S]');}
+const modeOf=k=>k==='az'?'mean':document.querySelector(`input[name=${k}mode]:checked`).value;
+const relabelView=k=>{['A','S'].forEach(s=>relabel(k+s,modeOf(k)))};
+function readDist(id,mode){
+ const e=$(id),g=k=>{const el=q(id,k);return el?el.value.trim():''},fU=g('unit')==='hour'?60:1,rate=mode==='rate',role=e.dataset.role==='arr'?'Arrival':'Service';
+ const n=(k,l,o)=>{const v=parseFloat(g(k));if(!isFinite(v))throw new Error(`${role}: ${l} — please enter a valid number.`);if(o==='pos'&&v<=0)throw new Error(`${role}: ${l} must be greater than zero.`);if(o==='nn'&&v<0)throw new Error(`${role}: ${l} cannot be negative.`);return v;};
+ const kind=e.dataset.fixed||g('kind'),s={kind,mean:0,sd:0,scv:0,a:0,b:0,k:2};
+ if(kind==='Uniform'){s.a=n('a','minimum a','nn')*fU;s.b=n('b','maximum b','nn')*fU;if(s.b<=s.a)throw new Error(`${role}: Uniform needs b greater than a.`);}
+ else{const v=n('mean',rate?'rate':'mean time','pos');s.mean=rate?fU/v:v*fU;
+  if(kind==='Erlang')s.k=parseInt(g('k'))||2;
+  if(['Normal','Gamma','General'].includes(kind)){
+   if(g('sd')!=='')s.sd=n('sd','standard deviation','nn')*fU;
+   else if(kind==='General'&&g('var')!=='')s.sd=Math.sqrt(n('var','variance','nn'))*fU;
+   else throw new Error(`${role}: enter the standard deviation${kind==='General'?' or the variance':''}.`);
+   if(kind!=='General'&&s.sd<=0)throw new Error(`${role}: standard deviation must be greater than zero.`);}}
+ return s;}
+function fillMinutes(id,s){const set=(k,v)=>{const el=q(id,k);if(el)el.value=v};const ks=q(id,'kind');
+ if(ks){if(![...ks.options].some(o=>o.text===s.kind))ks.add(new Option(s.kind));ks.value=s.kind;}
+ set('unit','minute');set('mean',+s.mean.toFixed(4));set('sd',+s.sd.toFixed(4));set('var',+(s.sd*s.sd).toFixed(4));set('a',+s.a.toFixed(4));set('b',+s.b.toFixed(4));set('k',s.k);show(id);}
+
+/* ---------- views ---------- */
+const NAV=[['az','Scenario Analyzer'],['-','Models'],['sim','Single-Server Simulation'],['mm1','M/M/1'],['mg1','M/G/1'],['gg1','G/G/1'],['-','Tools'],['cmp','Compare Models'],['th','Theory & Formulas'],['ab','About']];
+const head=(t,s)=>`<header class="ph"><h1>${t}</h1><p>${s}</p></header>`;
+const modeBox=k=>`<div class="mode"><span>Input type</span><label><input type="radio" name="${k}mode" value="rate" checked> Rate-wise</label><label><input type="radio" name="${k}mode" value="mean"> Mean-wise</label></div>`;
+const calcView=(k,t,s,o)=>head(t,s)+`<div class="card">${modeBox(k)}<div class="two"><div><h3>Arrival process</h3>${editor(k+'A','arr',o.af,o.ak)}</div><div><h3>Service process</h3>${editor(k+'S','svc',o.sf,o.sk)}</div></div>${o.extra||''}
+ <div class="actions"><button class="btn" id="${k}go">Calculate</button><button class="btn ghost" id="${k}ex">Load example</button><button class="btn ghost" id="${k}rs">Reset</button></div><div class="msg" id="${k}msg"></div></div><div id="${k}out"></div>`;
+
+const V={};
+V.az=head('Scenario Analyzer','Describe a queueing problem in plain English. The system identifies the model, applies the correct rules and verifies the result by simulation.')+
+`<div class="two"><div class="card"><h3>Problem scenario</h3><textarea id="azs" placeholder="e.g. Customers arrive at a bank according to a Poisson process with rate 10 per hour. Service times are exponentially distributed with mean 4 minutes. There is one teller."></textarea>
+<div class="chips"><button class="btn ghost" data-ex="mm1">M/M/1</button><button class="btn ghost" data-ex="mg1">M/G/1</button><button class="btn ghost" data-ex="gg1">G/G/1</button><button class="btn ghost" data-ex="mmc">M/M/2</button><button class="btn ghost" data-ex="unst">Unstable</button></div>
+<div class="g2" style="margin-top:12px"><div><label>Simulated customers</label><input id="azn" value="100000"></div><div><label>Random seed</label><input id="azseed" value="12345"></div></div>
+<div class="actions"><button class="btn" id="azgo">Analyze &amp; simulate</button></div><div class="msg" id="azmsg"></div></div>
+<div class="card hidden-until" id="azp" hidden><h3>Extracted parameters — editable (minutes)</h3><div class="g2"><div>${editor('azA','arr')}</div><div>${editor('azS','svc')}</div></div>
+<div class="g2" style="margin-top:12px"><div><label>Servers (c)</label><input id="azc" value="1"></div></div><div class="actions"><button class="btn ghost" id="azre">Re-run with edited values</button></div></div></div><div id="azout"></div>`;
+V.sim=head('Single-Server Simulation','A customer-by-customer table: arrival, service start, departure, waiting, system time and idle time, followed by a summary.')+
+`<div class="card">${modeBox('sim')}<div class="two"><div><h3>Inter-arrival times</h3>${editor('simA','arr')}</div><div><h3>Service times</h3>${editor('simS','svc')}</div></div>
+<div class="g2" style="margin-top:14px;max-width:420px"><div><label>Number of customers (1–2000)</label><input id="simn" value="10"></div><div><label>Random seed</label><input id="simseed" value="12345"></div></div>
+<details><summary>Enter inter-arrival and service times manually (optional — overrides the distributions)</summary><div class="g2" style="margin-top:10px"><div><label>Inter-arrival times, comma-separated (first is 0)</label><textarea id="simia" style="min-height:64px"></textarea></div><div><label>Service times, comma-separated</label><textarea id="simsv" style="min-height:64px"></textarea></div></div></details>
+<div class="actions"><button class="btn" id="simgo">Run simulation</button><button class="btn ghost" id="simex">Load example</button><button class="btn ghost" id="simrs">Reset</button></div><div class="msg" id="simmsg"></div></div><div id="simout"></div>`;
+V.mm1=calcView('mm1','M/M/1 Model','Poisson arrivals, exponential service, one server. All results are exact.',{af:'Exponential',sf:'Exponential',extra:`<div style="max-width:260px;margin-top:16px"><label>Number of customers n for P(N = n)</label><input id="mm1n" value="5"></div>`});
+V.mg1=calcView('mg1','M/G/1 Model','Poisson arrivals, general service, one server. Uses the Pollaczek–Khinchine formula (exact for the mean values).',{af:'Exponential',sk:['General','Exponential','Normal','Uniform','Gamma','Deterministic']});
+V.gg1=calcView('gg1','G/G/1 Model','General arrivals and general service, one server. Results are an approximation (Kingman).',{ak:['General','Exponential','Uniform','Normal','Gamma','Deterministic'],sk:['General','Exponential','Uniform','Normal','Gamma','Deterministic']});
+V.cmp=head('Compare Models','The same queue under three levels of generality — see how variability changes the waiting time.')+
+`<div class="card"><div class="g2" style="grid-template-columns:repeat(4,1fr)"><div><label>Arrival rate λ (per hour)</label><input id="cl" value="10"></div><div><label>Service rate μ (per hour)</label><input id="cm" value="15"></div><div><label>Arrival Ca² (for G/G/1)</label><input id="cca" value="1.5"></div><div><label>Service Cs² (M/G/1, G/G/1)</label><input id="ccs" value="0.5"></div></div>
+<div class="actions"><button class="btn" id="cgo">Compare</button></div><div class="msg" id="cmsg"></div></div><div id="cout"></div>`;
+V.th=head('Theory & Formulas','Notation, assumptions and the equations used by each model.')+`<div class="card th">
+<h4>Kendall notation  A / S / c</h4><p>A = arrival-time distribution, S = service-time distribution, c = number of servers. <b>M</b> = Markovian (Poisson arrivals ⇔ exponential inter-arrival times; exponential service). <b>G</b> = General (Normal, Uniform, Gamma, deterministic or any distribution with known mean and variance). <b>1</b> = one server.</p>
+<table style="margin:10px 0"><tr><th>Model</th><th>Arrival</th><th>Service</th><th>Servers</th><th>Result type</th></tr><tr><td>M/M/1</td><td>Exponential</td><td>Exponential</td><td>1</td><td>Exact</td></tr><tr><td>M/G/1</td><td>Exponential</td><td>General</td><td>1</td><td>Exact (P-K)</td></tr><tr><td>G/G/1</td><td>General</td><td>General</td><td>1</td><td>Approximation</td></tr></table>
+<h4>Symbols</h4><table><tr><th>Symbol</th><th>Meaning</th></tr><tr><td>λ</td><td>Arrival rate = 1 / E[A]</td></tr><tr><td>μ</td><td>Service rate = 1 / E[S]</td></tr><tr><td>ρ</td><td>Utilization = λ / μ</td></tr><tr><td>L, Lq</td><td>Average customers in system / in queue</td></tr><tr><td>W, Wq</td><td>Average time in system / in queue</td></tr><tr><td>P0</td><td>Probability the system is empty</td></tr><tr><td>Ca², Cs²</td><td>Squared coefficient of variation of inter-arrival / service time = Var / Mean²</td></tr></table>
+<h4>Units</h4><p>Rate-wise: λ = 10 /hour. Mean-wise: E[A] = 6 min ⇒ λ = 1/6 per minute = 10 per hour. All values are converted to minutes internally, so units are never mixed.</p>
+<h4>Stability rule</h4><p><span class="f">ρ = λ/μ &lt; 1</span> (equivalently λ &lt; μ). If ρ ≥ 1 no finite steady state exists and the program refuses to apply the formulas.</p>
+<h4>M/M/1</h4><p>Assumptions: one server, FIFO, independent arrivals and services, constant rates, infinite population and queue, λ &lt; μ.</p><p><span class="f">ρ = λ/μ</span> <span class="f">P0 = 1 − ρ</span> <span class="f">L = ρ/(1−ρ)</span> <span class="f">Lq = ρ²/(1−ρ)</span> <span class="f">W = 1/(μ−λ)</span> <span class="f">Wq = ρ/(μ−λ)</span> <span class="f">Pn = (1−ρ)ρⁿ</span></p>
+<h4>M/G/1 — Pollaczek–Khinchine</h4><p><span class="f">E[S²] = Var(S) + E[S]²</span> <span class="f">ρ = λE[S]</span> <span class="f">Wq = λE[S²] / (2(1−ρ))</span> <span class="f">W = Wq + E[S]</span></p><p>Uniform(a,b): E[S] = (a+b)/2, Var = (b−a)²/12. Normal(m,σ²): E[S]=m, Var=σ². Deterministic: Var = 0. Gamma(mean, sd): Var = sd².</p>
+<h4>G/G/1 — Kingman approximation</h4><p><span class="f">Ca² = Var(A)/E[A]²</span> <span class="f">Cs² = Var(S)/E[S]²</span> <span class="f">Wq ≈ ρ/(1−ρ) · (Ca²+Cs²)/2 · E[S]</span></p><p>This implementation additionally applies the Krämer–Langenbach-Belz correction factor and shows Kingman's upper bound; the simulation serves as ground truth.</p>
+<h4>Little's law (validation)</h4><p><span class="f">L = λW</span> <span class="f">Lq = λWq</span> <span class="f">W = Wq + 1/μ</span></p>
+<h4>Simulation table</h4><p><span class="f">Arrivalᵢ = Arrivalᵢ₋₁ + Interarrivalᵢ</span> <span class="f">Startᵢ = max(Arrivalᵢ, Endᵢ₋₁)</span> <span class="f">Endᵢ = Startᵢ + Serviceᵢ</span> <span class="f">Waitingᵢ = Startᵢ − Arrivalᵢ</span> <span class="f">System timeᵢ = Endᵢ − Arrivalᵢ</span> <span class="f">Idleᵢ = max(0, Arrivalᵢ − Endᵢ₋₁)</span></p></div>`;
+V.ab=head('About the Project','')+`<div class="card"><table style="max-width:700px"><tr><td>Project</td><td style="text-align:left">Queueing Model Simulation and Performance Analysis System</td></tr><tr><td>Department</td><td style="text-align:left">UBIT</td></tr><tr><td>Subject</td><td style="text-align:left">Simulation and Modelling</td></tr><tr><td>Teacher</td><td style="text-align:left">Miss Shaista Raees</td></tr><tr><td>Team members</td><td style="text-align:left">Waqar, Zohaib, Mujeeb, Maaz, Ammar, Arif</td></tr><tr><td>Technology</td><td style="text-align:left">C# (ASP.NET Core, .NET 10) backend · HTML, CSS and JavaScript frontend</td></tr><tr><td>Models</td><td style="text-align:left">M/M/1 · M/G/1 · G/G/1 · customer-by-customer single-server simulation</td></tr></table></div>`;
+
+/* ---------- build ---------- */
+$('main').innerHTML=Object.entries(V).map(([k,h])=>`<section class="view" id="v-${k}" hidden>${h}</section>`).join('');
+$('nav').innerHTML=NAV.map(([k,t])=>k==='-'?`<div class="sep">${t}</div>`:`<a data-k="${k}">${t}</a>`).join('');
+function go(k){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+k);document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.k===k));history.replaceState(null,'','#'+k);scrollTo(0,0);}
+document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>go(a.dataset.k));
+document.querySelectorAll('.ed').forEach(e=>{const s=e.querySelector('[data-r=kind]');if(s)s.onchange=()=>show(e.id);show(e.id);});
+['az','sim','mm1','mg1','gg1'].forEach(relabelView);
+document.querySelectorAll('input[type=radio][name$=mode]').forEach(r=>r.onchange=()=>relabelView(r.name.slice(0,-4)));
+
+/* ---------- examples & reset ---------- */
+const EXC={mm1:{m:'rate',A:{mean:'10',unit:'hour'},S:{mean:'15',unit:'hour'}},
+ mg1:{m:'mean',A:{mean:'6',unit:'minute'},S:{kind:'General',mean:'4',unit:'minute',sd:'2'}},
+ gg1:{m:'mean',A:{kind:'General',mean:'6',unit:'minute',sd:'3'},S:{kind:'General',mean:'4',unit:'minute',sd:'2'}},
+ sim:{m:'mean',A:{kind:'Exponential',mean:'5',unit:'minute'},S:{kind:'Uniform',a:'2',b:'6',unit:'minute'}}};
+function loadEx(k){const x=EXC[k];document.querySelector(`input[name=${k}mode][value=${x.m}]`).checked=true;relabelView(k);
+ [['A',x.A],['S',x.S]].forEach(([s,v])=>{const id=k+s,ks=q(id,'kind');if(ks&&v.kind)ks.value=v.kind;['mean','sd','a','b'].forEach(c=>{const el=q(id,c);if(el)el.value=v[c]||''});q(id,'unit').value=v.unit;show(id);});
+ if(k==='sim'){$('simia').value='';$('simsv').value='';$('simn').value='10';}}
+function reset(k){['A','S'].forEach(s=>{const id=k+s;$(id).querySelectorAll('input').forEach(i=>i.value='');const ks=q(id,'kind');if(ks)ks.selectedIndex=0;q(id,'unit').value='minute';show(id);});
+ $(k+'msg').textContent='';$(k+'out').innerHTML='';if(k==='sim'){$('simia').value='';$('simsv').value='';$('simn').value='10';}}
+['mm1','mg1','gg1','sim'].forEach(k=>{$(k+'ex').onclick=()=>loadEx(k);$(k+'rs').onclick=()=>reset(k);});
+const manualEx=()=>{$('simia').value='0, 3, 5, 2, 6, 1, 4, 3, 2, 5';$('simsv').value='4, 3, 5, 2, 4, 3, 6, 2, 3, 4';};
+$('simex').onclick=()=>{loadEx('sim');manualEx();};
+
+/* ---------- calculators ---------- */
+const kpi=(l,v,s='')=>`<div class="kpi"><span>${l}</span><b>${v}</b><small>${s}</small></div>`;
+const desc=s=>`${s.kind}, mean = ${f(s.mean)} min, SCV = ${f(s.scv)}`;
+async function runCalc(k){
+ const msg=$(k+'msg');msg.textContent='';$(k+'out').innerHTML='';
+ try{const m=modeOf(k),d=await post('/api/analyze',{scenario:'',arrival:readDist(k+'A',m),service:readDist(k+'S',m),servers:1,simCustomers:100000});
+  if(!d.ok)throw new Error(d.errors.join(' '));renderCalc(k,d);}catch(e){msg.textContent=e.message;}
+}
+function renderCalc(k,d){
+ const a=d.analysis,s=d.sim,p=d.parsed,out=$(k+'out');
+ const hd=`<div class="card"><div class="rh"><div><h3>Result</h3><div class="model">${a.family}<em>${a.kendall!==a.family?a.kendall:''}</em></div></div><span class="pill ${a.stable?'ok':'bad'}">${a.stable?'Stable':'Unstable'}</span></div>`;
+ if(!a.stable){out.innerHTML=hd+`<p class="bad-t">The queue is unstable because λ ≥ μ (ρ = ${f(a.rho)}). No finite steady-state solution exists. Reduce the arrival rate or increase the service rate.</p><div class="kpis">${kpi('λ',f(a.lambda*60),'per hour')}${kpi('μ',f(a.mu*60),'per hour')}${kpi('ρ',f(a.rho))}</div></div>`;return;}
+ const P=a.exact?'':'≈ ',es=1/a.mu,es2=(a.cs2+1)*es*es,T=(x)=>`${P}${f(x,3)} min`,H=x=>`${f(x/60,4)} hour`;
+ const rows=[['λ  arrival rate',`${f(a.lambda*60)} /hour = ${f(a.lambda)} /min`],['μ  service rate',`${f(a.mu*60)} /hour = ${f(a.mu)} /min`],['E[S]  mean service time',`${f(es)} min`]];
+ if(k!=='mm1')rows.push(['Cs²  service variability',f(a.cs2)],['E[S²] = Var(S) + E[S]²',`${f(es2)} min²`]);
+ if(k==='gg1')rows.push(['Ca²  arrival variability',f(a.ca2)]);
+ let extra='';
+ if(a.family==='M/M/1'&&a.pn){const n=parseInt(($('mm1n')||{}).value);
+  extra=`<table style="margin-top:14px"><tr><th>Probability</th><th>Value</th></tr><tr><td>Server busy = ρ</td><td>${f(a.rho)}</td></tr><tr><td>Server idle = 1 − ρ</td><td>${f(1-a.rho)}</td></tr>${n>=0?`<tr><td>P(N = ${n}) = (1−ρ)ρⁿ</td><td>${f((1-a.rho)*Math.pow(a.rho,n),6)}</td></tr>`:''}</table>`;}
+ out.innerHTML=hd+(k==='mg1'&&a.family==='M/M/1'?`<p class="mut">The chosen service distribution is exponential, so this reduces to M/M/1.</p>`:'')+(a.exact?'':`<p class="mut">≈ Approximation — ${a.method}.</p>`)+
+ `<div class="kpis">${kpi('Utilization ρ',f(a.rho),f(a.rho*100,2)+' %')}${kpi('Idle P0',f(a.p0),'system empty')}${kpi('Lq',P+f(a.lq),'in queue')}${kpi('L',P+f(a.l),'in system')}${kpi('Wq',T(a.wq).replace(' min',''),'min · '+H(a.wq))}${kpi('W',T(a.w).replace(' min',''),'min · '+H(a.w))}</div>
+ <table>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>${extra}
+ <p class="mut" style="margin-top:14px">Simulation cross-check (${f(s.customers,0)} customers): Wq = ${f(s.avgWq,3)} min ± ${f(s.wqCiHalfWidth,3)}, utilization = ${f(s.utilization,3)}.</p>
+ <div class="actions"><button class="btn ghost" onclick="this.parentNode.nextElementSibling.hidden=!this.parentNode.nextElementSibling.hidden">Show / hide solution</button></div>
+ <div class="sol" hidden><b>Given</b><ul><li>Arrival: ${desc(p.arrival)}</li><li>Service: ${desc(p.service)}</li></ul><b>Steps</b><ol class="mono">${li(a.steps)}</ol><b>Assumptions applied</b><ul>${li(a.rules)}</ul></div></div>`;
+}
+['mm1','mg1','gg1'].forEach(k=>$(k+'go').onclick=()=>runCalc(k));
+
+/* ---------- simulation table ---------- */
+async function runSim(){
+ const msg=$('simmsg'),out=$('simout');msg.textContent='';out.innerHTML='';
+ try{const body={seed:parseInt($('simseed').value)||null},ia=$('simia').value.trim(),sv=$('simsv').value.trim(),fu=id=>q(id,'unit').value==='hour'?60:1;
+  if(ia||sv){const parse=(t,u,n)=>{if(!t)throw new Error('Manual mode needs both lists.');const v=t.split(/[\s,;]+/).filter(Boolean).map(Number);if(v.some(x=>!isFinite(x)||x<0))throw new Error(n+': use non-negative numbers separated by commas.');return v.map(x=>x*u)};
+   body.manualInterarrival=parse(ia,fu('simA'),'Inter-arrival list');body.manualService=parse(sv,fu('simS'),'Service list');
+   if(body.manualInterarrival.length!==body.manualService.length)throw new Error('Both lists must have the same number of values.');}
+  else{const n=parseInt($('simn').value);if(!(n>=1&&n<=2000))throw new Error('Number of customers must be between 1 and 2000.');const m=modeOf('sim');body.n=n;body.arrival=readDist('simA',m);body.service=readDist('simS',m);}
+  const d=await post('/api/simtable',body);if(!d.ok)throw new Error(d.error);
+  const r=x=>f(x,3);
+  out.innerHTML=`<div class="card"><div class="rh"><h3>Simulation summary (minutes)</h3><span class="pill ${d.consistent?'ok':'bad'}">${d.consistent?'System time = waiting + service ✓':'Check failed'}</span></div>
+  <div class="kpis">${kpi('Customers',d.n)}${kpi('Avg waiting',r(d.avgWaiting))}${kpi('Avg service',r(d.avgService))}${kpi('Avg system time',r(d.avgSystem))}${kpi('Total idle time',r(d.totalIdle))}${kpi('Max waiting',r(d.maxWaiting))}${kpi('Customers who waited',d.waited)}${kpi('P(customer waits)',f(d.probWait,3))}</div>
+  <div class="scroll"><table><tr><th>Customer</th><th>Interarrival</th><th>Arrival</th><th>Service</th><th>Service start</th><th>Service end</th><th>Waiting</th><th>System time</th><th>Idle</th></tr>
+  ${d.rows.map(x=>`<tr><td>${x.customer}</td><td>${r(x.interarrival)}</td><td>${r(x.arrival)}</td><td>${r(x.service)}</td><td>${r(x.start)}</td><td>${r(x.end)}</td><td>${r(x.waiting)}</td><td>${r(x.systemTime)}</td><td>${r(x.idle)}</td></tr>`).join('')}</table></div></div>`;
+ }catch(e){msg.textContent=e.message;}
+}
+$('simgo').onclick=runSim;
+
+/* ---------- compare ---------- */
+$('cgo').onclick=async()=>{const msg=$('cmsg'),out=$('cout');msg.textContent='';out.innerHTML='';
+ try{const v=(id,n,z)=>{const x=parseFloat($(id).value);if(!isFinite(x)||(z?x<0:x<=0))throw new Error(n+(z?' must be 0 or more.':' must be greater than zero.'));return x};
+  const lh=v('cl','Arrival rate'),mh=v('cm','Service rate'),ca=v('cca','Ca²',1),cs=v('ccs','Cs²',1);
+  if(lh>=mh)throw new Error('The queue is unstable because λ ≥ μ. Choose λ < μ.');
+  const A=60/lh,S=60/mh,ex=m=>({kind:'Exponential',mean:m}),ge=(m,c)=>({kind:'General',mean:m,sd:Math.sqrt(c)*m});
+  const R=await Promise.all([[ex(A),ex(S)],[ex(A),ge(S,cs)],[ge(A,ca),ge(S,cs)]].map(([a,s])=>post('/api/analyze',{scenario:'',arrival:a,service:s,servers:1,simCustomers:50000})));
+  const row=(n,fn)=>`<tr><td>${n}</td>${R.map(d=>`<td>${fn(d.analysis)}</td>`).join('')}</tr>`;
+  out.innerHTML=`<div class="card"><table><tr><th></th><th>M/M/1</th><th>M/G/1</th><th>G/G/1</th></tr>${row('Ca²',a=>f(a.ca2))}${row('Cs²',a=>f(a.cs2))}${row('Utilization ρ',a=>f(a.rho))}${row('Lq',a=>f(a.lq))}${row('L',a=>f(a.l))}${row('Wq (min)',a=>f(a.wq,3))}${row('W (min)',a=>f(a.w,3))}${row('Result type',a=>a.exact?'Exact':'Approximation')}</table></div>`;
+ }catch(e){msg.textContent=e.message;}};
+
+/* ---------- scenario analyzer ---------- */
+const EX={mm1:"Customers arrive at a bank according to a Poisson process with rate 10 per hour. Service times are exponentially distributed with mean 4 minutes. There is one teller.",
+ mg1:"Cars arrive at a car wash following a Poisson process at 6 per hour. The service time is uniformly distributed between 5 and 9 minutes. There is one bay.",
+ gg1:"Jobs arrive at a machine every 5 minutes on average with a standard deviation of 3 minutes (general distribution). Processing time has mean 4 minutes and standard deviation of 2 minutes. One machine.",
+ mmc:"Patients arrive according to a Poisson process at 18 per hour. Service is exponential with mean 5 minutes. There are two doctors.",
+ unst:"Calls arrive as a Poisson process at 15 per hour. Each call takes an exponentially distributed time with mean 5 minutes. One operator."};
+document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{$('azs').value=EX[b.dataset.ex];runAz(false);});
+$('azgo').onclick=()=>runAz(false);$('azre').onclick=()=>runAz(true);
+async function runAz(edit){$('azmsg').textContent='';
+ try{const body={scenario:$('azs').value,simCustomers:parseInt($('azn').value)||100000,seed:parseInt($('azseed').value)||null};
+  if(edit){body.arrival=readDist('azA','mean');body.service=readDist('azS','mean');body.servers=parseInt($('azc').value)||1;}
+  azRender(await post('/api/analyze',body));}catch(e){$('azmsg').textContent=e.message;}}
+function azRender(d){const p=d.parsed;$('azp').hidden=false;
+ const blank={kind:'Exponential',mean:0,sd:0,a:0,b:0,k:2};
+ [['azA',p.arrival],['azS',p.service]].forEach(([id,s])=>{if(s)fillMinutes(id,s);else{fillMinutes(id,blank);q(id,'mean').value='';}});$('azc').value=p.servers;
+ if(!d.ok){$('azout').innerHTML=`<div class="card"><h3>Could not complete</h3><ul class="bad-t">${li(d.errors)}</ul></div>`;return;}
+ const a=d.analysis,s=d.sim,P=a.exact?'':'≈ ';
+ const rows=[['Utilization ρ',a.rho,s.utilization],['P(wait > 0)',a.probWait,s.probWait],['Wq (min)',a.wq,s.avgWq],['W (min)',a.w,s.avgW],['Lq',a.lq,s.avgLq],['L',a.l,s.avgL]];
+ $('azout').innerHTML=`<div class="card"><div class="rh"><div><h3>Model decision</h3><div class="model">${a.family}<em>${a.kendall}</em></div></div><span class="pill ${a.stable?'ok':'bad'}">${a.stable?'Stable':'Unstable'}</span></div><p class="mut">${a.method}</p><ul>${li(a.why)}</ul>${a.warnings.length?`<ul class="warn">${li(a.warnings)}</ul>`:''}</div>
+ <div class="card"><h3>Theory versus simulation — ${f(s.customers,0)} customers</h3><table><tr><th>Measure</th><th>${a.exact?'Exact':'Approximation'}</th><th>Simulation</th><th>Difference</th></tr>${rows.map(([n,t,v])=>`<tr><td>${n}</td><td>${f(t)}</td><td>${f(v)}</td><td>${t?f((v-t)/t*100,1)+' %':'—'}</td></tr>`).join('')}</table>
+ <p class="mut" style="margin-top:10px">λ = ${f(a.lambda*60)}/h · μ = ${f(a.mu*60)}/h per server · Ca² = ${f(a.ca2)} · Cs² = ${f(a.cs2)} · Wq 95 % CI ±${f(s.wqCiHalfWidth)}${a.wqUpperBound!=null?` · Kingman upper bound ${f(a.wqUpperBound)} min`:''}</p></div>
+ <div class="card"><h3>Running average of waiting time</h3><canvas id="azch" width="1000" height="240"></canvas></div>
+ <div class="card"><h3>Calculation</h3><ol class="mono">${li(a.steps)}</ol><details><summary>Rules &amp; assumptions applied</summary><ul>${li(a.rules)}</ul></details><details><summary>What the parser understood</summary><ul>${li(p.notes)}</ul></details></div>`;
+ chart($('azch'),s.convergence,a.wq);}
+function chart(cv,pts,th){const c=cv.getContext('2d'),W=cv.width,H=cv.height,m={l:56,r:14,t:14,b:26};const ys=pts.map(p=>p[1]),xm=Math.max(...pts.map(p=>p[0])),ym=Math.max(...ys,th||0)*1.1||1;
+ const X=x=>m.l+x/xm*(W-m.l-m.r),Y=y=>H-m.b-y/ym*(H-m.t-m.b);c.font='11px sans-serif';c.fillStyle='#6a7284';c.strokeStyle='#e5e0d4';
+ for(let i=0;i<=4;i++){const v=ym*i/4,y=Y(v);c.beginPath();c.moveTo(m.l,y);c.lineTo(W-m.r,y);c.stroke();c.fillText(v.toFixed(2),8,y+4);}
+ if(th!=null){c.strokeStyle='#a8814a';c.setLineDash([6,4]);c.beginPath();c.moveTo(m.l,Y(th));c.lineTo(W-m.r,Y(th));c.stroke();c.setLineDash([]);c.fillStyle='#a8814a';c.fillText('theory',m.l+6,Y(th)-5);}
+ c.strokeStyle='#0f1b2d';c.lineWidth=2;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(X(p[0]),Y(p[1])):c.moveTo(X(p[0]),Y(p[1])));c.stroke();}
+
+go((location.hash||'#az').slice(1)in V?(location.hash||'#az').slice(1):'az');
+</script>
+</body>
+</html>
