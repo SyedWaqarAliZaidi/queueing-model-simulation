@@ -53,6 +53,7 @@ canvas{width:100%;height:240px;border:1px solid var(--line);background:#fff}
 .view[hidden]{display:none}.th h4{font:600 17px var(--serif);margin:22px 0 6px}.th p{margin:4px 0}
 .f{font-family:ui-monospace,Consolas,monospace;background:#faf8f3;border:1px solid var(--line);padding:2px 7px;border-radius:3px;font-size:13px}
 [contenteditable]{border-bottom:1px dashed #cfc8b8;padding:0 4px;min-width:140px;display:inline-block}
+.ed .g2{grid-template-columns:1.5fr 1fr;align-items:end}.ed label{min-height:2.6em;display:flex;align-items:flex-end}.th th,.th td{text-align:left}
 @media(max-width:900px){body{grid-template-columns:1fr}aside{position:static;height:auto}main{padding:24px}.two,.g2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -85,7 +86,7 @@ function editor(id,role,fixed,kinds){
 }
 function show(id){const e=$(id),k=e.dataset.fixed||q(id,'kind').value;e.querySelectorAll('[data-k]').forEach(x=>x.style.display=x.dataset.k.split(' ').includes(k)?'':'none');}
 function relabel(id,mode){const arr=$(id).dataset.role==='arr',rate=mode==='rate';
- q(id,'meanLbl').textContent=rate?(arr?'Arrival rate λ (customers per time unit)':'Service rate μ (customers per time unit)'):(arr?'Mean inter-arrival time E[A]':'Mean service time E[S]');}
+ q(id,'meanLbl').textContent=rate?(arr?'Arrival rate λ (per time unit)':'Service rate μ (per time unit)'):(arr?'Mean inter-arrival time E[A]':'Mean service time E[S]');}
 const modeOf=k=>k==='az'?'mean':document.querySelector(`input[name=${k}mode]:checked`).value;
 const relabelView=k=>{['A','S'].forEach(s=>relabel(k+s,modeOf(k)))};
 function readDist(id,mode){
